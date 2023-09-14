@@ -1,5 +1,5 @@
 use mlua::UserData;
 
-pub struct UnityObject{}
+pub struct UnityObject {}
 
 impl UserData for UnityObject {}
