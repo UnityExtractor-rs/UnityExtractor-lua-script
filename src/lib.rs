@@ -1,10 +1,6 @@
-mod script_libs;
-mod unity_object;
+pub mod script;
+pub mod script_libs;
+pub mod unity_bundle;
+pub mod unity_object;
 
-use mlua::Lua;
-
-fn lua_loader() {
-    let vm = Lua::new();
-}
-
-pub use script_libs::script_register::ScriptRegister;
+pub use unity_bundle::UnityBundle;
