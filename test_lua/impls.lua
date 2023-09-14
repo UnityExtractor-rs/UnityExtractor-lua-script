@@ -27,6 +27,7 @@ function OperateA(script, unityBundle, manager)
     script:storageStore("A", "A");
     print("this is ", script.identity)
     print("config 2 is ", script.config["user.config.2"].value, "kind is ", script.config["user.config.2"].kind)
+    print(script:storageLoad("A"))
     print("process operat A")
 end
 
