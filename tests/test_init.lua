@@ -1,4 +1,5 @@
 
+local impls = require("tests/impls")
 ---@class ScriptRegister
 ScriptRegister = {}
 
@@ -29,13 +30,7 @@ SelectItem={}
 
 ---@param name string
 function ScriptRegister:name(name) end
-function operateA(unityObject)
-    print("执行操作A")
-end
-maps = {
-    ["A"] = operateA,
-    ["B"] = function(b) return b -1 end
-}
+
 
 ---addUserConfig
 ---@param config UserEditableConfig
@@ -45,7 +40,7 @@ function ScriptRegister:addUserConfig(config)end
 ---@param register ScriptRegister
 function initScript(register)
 
-    print(maps["A"](11))
+    print(impls.maps["A"](11))
     print("init script test")
     register:name("test");
     register:addUserConfig({
@@ -75,24 +70,10 @@ function initScript(register)
             default = "1"
         }
     })
-    register:configUpdateCallback("configUpdate")
-    register:verifyApplicable("verifyApplicable")
-    register:entryPoint("maps")
+    register:configUpdateCallback("impls.configUpdate")
+    register:verifyApplicable("impls.verifyApplicable")
+    register:entryPoint("impls.maps")
 end
 
-function configUpdate(configs,storage)
-    for i, v in ipairs(configs) do
-        print("config ", i , v)
-    end
 
-end
-
-function verifyApplicable(unityObject,storage)
-    return {
-        ["A"] = {
-            name = "操作A",
-            entry_point="A"
-        }
-    }
-end
 
