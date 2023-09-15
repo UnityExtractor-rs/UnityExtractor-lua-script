@@ -6,7 +6,9 @@ use std::rc::Rc;
 pub type StorageResult<T> = Result<T, Box<dyn Error + Send + Sync>>;
 
 pub trait Storage {
-    fn load(&self, script: &str, key: &str) -> StorageResult<Vec<u8>>;
+    fn contains_key(&self, script: &str, key: &str) -> StorageResult<bool>;
+
+    fn load(&self, script: &str, key: &str) -> StorageResult<Option<Vec<u8>>>;
 
     fn store(&self, script: &str, key: &str, value: &[u8]) -> StorageResult<()>;
 }
@@ -17,7 +19,11 @@ pub type BoxedStorage = Rc<dyn Storage>;
 pub struct StorageManager(pub(super) BoxedStorage);
 
 impl Storage for StorageManager {
-    fn load(&self, script: &str, key: &str) -> StorageResult<Vec<u8>> {
+    fn contains_key(&self, script: &str, key: &str) -> StorageResult<bool> {
+        self.0.contains_key(script, key)
+    }
+
+    fn load(&self, script: &str, key: &str) -> StorageResult<Option<Vec<u8>>> {
         self.0.load(script, key)
     }
 

@@ -15,7 +15,7 @@ pub mod storage;
 pub mod user_config_define;
 pub mod user_editable_config;
 
-#[derive(Debug, TypedBuilder, Clone)]
+#[derive(Debug, TypedBuilder)]
 /// a loaded script
 pub struct Script<'lua> {
     #[builder(setter(transform = |identity:&str|Rc::from(String::from(identity).into_boxed_str())))]
@@ -31,7 +31,7 @@ pub struct Script<'lua> {
     pub configs: Rc<BTreeMap<Rc<str>, Rc<UserEditConfig>>>,
 
     /// entry points
-    pub entry_point: Rc<LuaEntryPoint<'lua>>,
+    pub entry_point: LuaEntryPoint<'lua>,
 }
 
 impl<'lua> Script<'lua> {
@@ -65,7 +65,7 @@ impl UserData for ScriptConfig {
                 .load(&this.identity, key.as_str())
                 .map_err(mlua::Error::external)?;
 
-            Ok(String::from_utf8_lossy(&ret).to_string())
+            Ok(ret.map(|v| String::from_utf8_lossy(&v).to_string()))
         });
 
         methods.add_method(

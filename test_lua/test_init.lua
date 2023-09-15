@@ -2,6 +2,8 @@ local impls = require("test_lua/impls")
 local define = require("define")
 local ConfigKind = define.ConfigKind
 
+local math = require("math")
+
 ---initScript
 ---@return ScriptRegister
 function InitScript()
@@ -37,6 +39,6 @@ function InitScript()
         configUpdate = impls.configUpdate,
         getApplicableScripts = impls.verifyApplicable
     }
-
+    print("return script test")
     return register
 end

@@ -9,7 +9,7 @@ use crate::script::user_config_define::UserConfigDefine;
 use std::rc::Rc;
 
 impl<'lua> ScriptRegister<'lua> {
-    pub fn to_script(self: &Self, storage: &BoxedStorage) -> Script<'lua> {
+    pub fn to_script(&self, storage: &BoxedStorage) -> Script<'lua> {
         let script = Script::builder()
             .identity(self.identity.as_str())
             .name(self.name.as_deref().unwrap_or(self.identity.as_str()))
@@ -32,18 +32,18 @@ impl<'lua> ScriptRegister<'lua> {
                     })
                     .collect(),
             ))
-            .entry_point(Rc::new(
+            .entry_point(
                 LuaEntryPoint::builder()
                     .get_matched_scripts(self.verify_applicable_fn_name.clone())
                     .config_update(self.config_update_fn_name.clone())
                     .build(),
-            ))
+            )
             .build();
 
         script
     }
 
-    pub fn to_config_define(self: &Self) -> UserConfigDefine {
+    pub fn to_config_define(&self) -> UserConfigDefine {
         UserConfigDefine::builder()
             .script_identity(&self.identity)
             .defines(

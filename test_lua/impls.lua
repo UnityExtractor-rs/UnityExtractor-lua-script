@@ -15,6 +15,14 @@ function module.verifyApplicable(unityObject)
         ["A"] = {
             name = "操作A",
             entry = OperateA
+        },
+        ["B"] = {
+            name = "操作B",
+            entry = function(script, unityObject, manager)
+                print("this is func B")
+                print(script:storageLoad("A"))
+                print("this is ", script.identity)
+            end
         }
     }
     return ops

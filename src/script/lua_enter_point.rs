@@ -3,7 +3,9 @@ use mlua::{
     FromLua, Function, Lua, Table,
     Value::{self, Nil},
 };
-use std::{collections::HashMap, rc::Rc};
+use std::collections::BTreeMap;
+
+use std::rc::Rc;
 
 use crate::script::ScriptConfig;
 use typed_builder::TypedBuilder;
@@ -81,10 +83,10 @@ impl<'lua> LuaEntryPoint<'lua> {
     pub fn get_matched_scripts(
         &self,
         bundle: UnityBundle,
-    ) -> mlua::Result<Option<HashMap<String, Rc<SubScriptEntry<'lua>>>>> {
+    ) -> mlua::Result<Option<BTreeMap<String, Rc<SubScriptEntry<'lua>>>>> {
         let entry = self
             .get_matched_scripts
-            .call::<_, Option<HashMap<String, SubScriptEntry<'lua>>>>(bundle)?
+            .call::<_, Option<BTreeMap<String, SubScriptEntry<'lua>>>>(bundle)?
             .map(|map| map.into_iter().map(|(k, v)| (k, Rc::new(v))).collect());
         Ok(entry)
     }
