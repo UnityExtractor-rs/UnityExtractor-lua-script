@@ -3,7 +3,7 @@ use typed_builder::TypedBuilder;
 
 /// the user Edit able config type
 #[derive(Debug, Clone)]
-pub enum ConfigKind {
+pub enum ConfigValue {
     /// a config which user can enable or disable it
     Switch(bool),
     /// a config which user can select item in one of provide selects
@@ -11,23 +11,23 @@ pub enum ConfigKind {
     /// a config which user can enter text as config value
     Text(String),
 }
-impl ConfigKind {
+impl ConfigValue {
     pub fn ty(&self) -> &'static str {
         match self {
-            ConfigKind::Switch(_) => "switch",
-            ConfigKind::Select(_) => "select",
-            ConfigKind::Text(_) => "text",
+            ConfigValue::Switch(_) => "switch",
+            ConfigValue::Select(_) => "select",
+            ConfigValue::Text(_) => "text",
         }
     }
 }
 
-impl<'lua> IntoLua<'lua> for &ConfigKind {
+impl<'lua> IntoLua<'lua> for &ConfigValue {
     fn into_lua(self, lua: &'lua Lua) -> mlua::Result<Value<'lua>> {
         Ok(Value::String(lua.create_string(self.ty().as_bytes())?))
     }
 }
 
-impl<'lua> IntoLua<'lua> for ConfigKind {
+impl<'lua> IntoLua<'lua> for ConfigValue {
     fn into_lua(self, lua: &'lua Lua) -> mlua::Result<Value<'lua>> {
         Ok(Value::String(lua.create_string(self.ty().as_bytes())?))
     }
@@ -38,30 +38,30 @@ impl<'lua> IntoLua<'lua> for ConfigKind {
 ///
 #[derive(Debug, TypedBuilder)]
 pub struct UserEditConfig {
-    pub kind: ConfigKind,
+    pub kind: ConfigValue,
 }
 
 impl UserEditConfig {
     pub fn value(&self) -> &str {
         match &self.kind {
-            ConfigKind::Switch(v) => {
+            ConfigValue::Switch(v) => {
                 if *v {
                     "true"
                 } else {
                     "false"
                 }
             }
-            ConfigKind::Select(s) | ConfigKind::Text(s) => s,
+            ConfigValue::Select(s) | ConfigValue::Text(s) => s,
         }
     }
 }
 
 impl UserData for UserEditConfig {
     fn add_fields<'lua, F: UserDataFields<'lua, Self>>(fields: &mut F) {
-        fields.add_field_method_get("kind", |_vm, this| Ok(this.kind.ty()));
+        fields.add_field_method_get("ty", |_vm, this| Ok(this.kind.ty()));
         fields.add_field_method_get("value", |vm, this| match &this.kind {
-            ConfigKind::Switch(bool) => bool.into_lua(vm),
-            ConfigKind::Select(s) | ConfigKind::Text(s) => s.as_str().into_lua(vm),
+            ConfigValue::Switch(bool) => bool.into_lua(vm),
+            ConfigValue::Select(s) | ConfigValue::Text(s) => s.as_str().into_lua(vm),
         })
     }
 }

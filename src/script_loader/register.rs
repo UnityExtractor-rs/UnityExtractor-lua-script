@@ -1,9 +1,8 @@
-use crate::script::lua_enter_point::LuaEntryPoint;
-use crate::script::storage::BoxedStorage;
-use crate::script::user_editable_config::{ConfigKind, UserEditConfig};
+use crate::script::user_editable_config::{ConfigValue, UserEditConfig};
 use crate::script::Script;
-use crate::script_libs::config_manage::UserEditableConfigKind;
-use crate::script_libs::ScriptRegister;
+use crate::script::{lua_enter_point::LuaEntryPoint, storage::BoxedStorage};
+use crate::script_loader::config::UserEditableConfigKind;
+use crate::script_loader::ScriptRegister;
 
 use crate::script::user_config_define::UserConfigDefine;
 use std::rc::Rc;
@@ -21,11 +20,11 @@ impl<'lua> ScriptRegister<'lua> {
                         let key = Rc::clone(&cfg.identity);
                         let value = UserEditConfig::builder()
                             .kind(match &*cfg.kind {
-                                UserEditableConfigKind::Switch(b) => ConfigKind::Switch(*b),
+                                UserEditableConfigKind::Switch(b) => ConfigValue::Switch(*b),
                                 UserEditableConfigKind::Select(_, v) => {
-                                    ConfigKind::Select(v.clone())
+                                    ConfigValue::Select(v.clone())
                                 }
-                                UserEditableConfigKind::Text(v) => ConfigKind::Text(v.clone()),
+                                UserEditableConfigKind::Text(v) => ConfigValue::Text(v.clone()),
                             })
                             .build();
                         (key, Rc::new(value))

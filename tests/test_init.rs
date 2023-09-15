@@ -1,12 +1,10 @@
 use extactor_lua_embedding::{
-    script::storage::{BoxedStorage, StorageResult},
-    script_libs::ScriptRegister,
-    UnityBundle,
+    script::storage::BoxedStorage, script_loader::ScriptRegister, UnityBundle,
 };
 use mlua::{Function, Lua, LuaOptions};
 
 use extactor_lua_embedding::script_manager::ScriptManager;
-use std::{cell::RefCell, collections::HashMap, error::Error, path::Path, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, convert::Infallible, path::Path, rc::Rc};
 
 #[test]
 fn test() {
@@ -87,15 +85,11 @@ fn wrap_init() {
 struct MapStorage(RefCell<HashMap<String, Box<[u8]>>>);
 
 impl extactor_lua_embedding::script::storage::Storage for MapStorage {
-    fn contains_key(&self, script: &str, key: &str) -> StorageResult<bool> {
+    fn contains_key(&self, script: &str, key: &str) -> Result<bool, Infallible> {
         Ok(self.0.borrow().contains_key(&format!("{script}.{key}")))
     }
 
-    fn load(
-        &self,
-        script: &str,
-        key: &str,
-    ) -> Result<Option<Vec<u8>>, Box<dyn Error + Send + Sync>> {
+    fn load(&self, script: &str, key: &str) -> Result<Option<Vec<u8>>, Infallible> {
         println!("get{script}.{key}",);
         Ok(self
             .0
@@ -104,7 +98,7 @@ impl extactor_lua_embedding::script::storage::Storage for MapStorage {
             .map(|v| v.clone().into_vec()))
     }
 
-    fn store(&self, script: &str, key: &str, value: &[u8]) -> StorageResult<()> {
+    fn store(&self, script: &str, key: &str, value: &[u8]) -> Result<(), Infallible> {
         println!(
             "save {script}.{key}, value: {}",
             String::from_utf8_lossy(value)
@@ -114,4 +108,6 @@ impl extactor_lua_embedding::script::storage::Storage for MapStorage {
             .insert(format!("{script}.{key}"), value.to_vec().into_boxed_slice());
         Ok(())
     }
+
+    type Error = Infallible;
 }

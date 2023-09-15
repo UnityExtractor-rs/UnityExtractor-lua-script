@@ -9,7 +9,7 @@ use std::rc::Rc;
 use typed_builder::TypedBuilder;
 
 use self::storage::Storage;
-
+pub mod error;
 pub mod lua_enter_point;
 pub mod storage;
 pub mod user_config_define;

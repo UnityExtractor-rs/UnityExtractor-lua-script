@@ -15,12 +15,22 @@
 ---@field tip? string
 ---@field kind UserEditableConfigKind
 
----@class UserEditableConfigKind
----@field ty ConfigKind
----@field default string
----@field selects? Selects
+---@alias UserEditableConfigKind SwitchConfig | SelectConfig | TextConfig
 
----@class Selects : {[string] : string}
+---@class SwitchConfig
+---@field ty "switch"
+---@field default boolean
+
+---@class SelectConfig
+---@field ty "select"
+---@field default string
+---@field selects Selects
+
+---@alias Selects  {[string] : string}
+
+---@class TextConfig
+---@field ty "text"
+---@field default string
 
 ---@enum ConfigKind
 ConfigKind = {
@@ -31,12 +41,23 @@ ConfigKind = {
 
 ---@class ScriptConfig
 ---@field identity string
----@field config {[string] : UserConfigKind }
+---@field config {[string] : UserConfigVariable }
 ScriptConfig = {}
 
----@class UserConfigKind
----@field kind string
+---@alias UserConfigVariable SwitchConfigVariable|SelectConfigVariable|TextConfigVariable
+
+---@class SwitchConfigVariable
+---@field ty "switch"
+---@field value boolean
+
+---@class SelectConfigVariable
+---@field ty "select"
 ---@field value string
+
+---@class TextConfigVariable
+---@field ty "text"
+---@field value string
+
 
 ---@param key string
 ---@return string
@@ -50,8 +71,26 @@ function ScriptConfig:storageStore(key, value) end
 ---@field name string
 ---@field entry function(script,unityBundle,manager)
 
+---@class Log
+Log = {}
+
+---@param args {[string]: any}
+function Log:info(args) end
+
+---@param args {[string]: any}
+function Log:debug(args) end
+
+---@param args {[string]: any}
+function Log:error(args) end
+
+---@param args {[string]: any}
+function Log:warn(args) end
+
+---@param args {[string]: any}
+function Log:trace(args) end
 
 return {
     ConfigKind = ConfigKind,
-    ScripScriptConfigt = ScriptConfig
+    ScripScriptConfigt = ScriptConfig,
+    Log = Log
 }

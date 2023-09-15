@@ -1,14 +1,16 @@
 mod error;
+mod log;
 mod sub_script_manager;
 
-use crate::script::storage::BoxedStorage;
 use crate::script::user_config_define::UserConfigDefine;
 use crate::script::Script;
-use crate::script_libs::ScriptRegister;
+use crate::script_loader::ScriptRegister;
 use crate::UnityBundle;
+use crate::{script::storage::BoxedStorage, script_manager::log::Log};
 pub use error::ScriptError;
 use mlua::{Function, Lua, LuaOptions, StdLib};
 
+use std::collections::HashMap;
 use std::path::Path;
 
 use std::ptr::NonNull;
@@ -59,6 +61,8 @@ impl ScriptManager {
 
         println!("{script:?}");
 
+        vm.globals().set("Log", Log::new(script.identity.clone()))?;
+
         (self.script) = Some(ScriptItem { script, define });
         Ok(())
     }
@@ -67,14 +71,22 @@ impl ScriptManager {
         let ScriptItem { script, define } =
             self.script.as_ref().ok_or(ScriptError::ScriptNotLoad)?;
 
+        let mut keys = HashMap::new();
         // check config item exist,
         for (key, config) in script.configs.iter() {
             if self.storage.contains_key(&script.identity, key)? {
                 continue;
             } else {
-                define.update(&script.storage, &script.identity, config.kind.clone())?;
+                let value = define.update(&script.storage, &key, config.kind.clone())?;
+                keys.insert(&**key, value);
             }
         }
+
+        script.entry_point.update_config(
+            unsafe { self.vm.as_ref() },
+            keys.iter().map(|(k, v)| (*k, v.as_str())),
+        )?;
+
         Ok(())
     }
 

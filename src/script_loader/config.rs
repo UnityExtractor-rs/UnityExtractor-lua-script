@@ -1,7 +1,8 @@
-use crate::script_libs::error::InitScriptError;
 use mlua::{FromLua, Lua, Table, Value};
 use std::collections::BTreeMap;
 use std::rc::Rc;
+
+use super::error::UserConfigError;
 
 #[derive(Debug, Clone)]
 pub enum UserEditableConfigKind {
@@ -24,33 +25,30 @@ impl<'lua> FromLua<'lua> for UserEditableConfigKind {
     fn from_lua(value: Value<'lua>, lua: &'lua Lua) -> mlua::Result<Self> {
         let tb = Table::from_lua(value, lua)?;
         let ty: String = tb.get("ty")?;
-        let default: String = tb.get("default")?;
-        let this = match ty.as_str() {
-            "switch" => {
-                let default = default.parse::<bool>().map_err::<mlua::Error, _>(|_| {
-                    InitScriptError::UnexpectDefaultValue("bool", default).into()
-                })?;
-                Self::Switch(default)
-            }
-            "select" => {
-                let selects = tb.get("selects")?;
-                let selects = <BTreeMap<String, String>>::from_lua(selects, lua)?;
-                if !selects.contains_key(&default) {
-                    return Err(InitScriptError::SelectTargetNotInRage(
-                        default,
-                        selects.keys().cloned().collect(),
-                    )
-                    .into());
-                }
-                Self::Select(selects, default)
-            }
-            "text" => Self::Text(default),
-            _ => {
-                return Err(InitScriptError::UnknownConfigType(ty).into());
-            }
-        };
 
-        Ok(this)
+        'load: {
+            let this = match ty.as_str() {
+                "switch" => {
+                    let default = tb.get("default")?;
+                    Self::Switch(default)
+                }
+                "select" => {
+                    let default: String = tb.get("default")?;
+                    let selects = tb.get("selects")?;
+                    let selects = <BTreeMap<String, String>>::from_lua(selects, lua)?;
+                    if !selects.contains_key(&default) {
+                        break 'load UserConfigError::new_out_range(default, selects.keys());
+                    }
+                    Self::Select(selects, default)
+                }
+                "text" => Self::Text(tb.get("default")?),
+                _ => {
+                    break 'load UserConfigError::new_unknown(&ty);
+                }
+            };
+
+            Ok(this)
+        }
     }
 }
 

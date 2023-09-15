@@ -1,9 +1,9 @@
-use crate::script_libs::config_manage::UserEditableConfig;
+use crate::script_loader::config::UserEditableConfig;
 use mlua::{FromLua, Function, Lua, Table, Value};
 
-pub mod config_manage;
+pub mod config;
 pub mod error;
-mod script_manager;
+mod register;
 
 #[derive(Debug, Clone)]
 pub struct ScriptRegister<'lua> {

@@ -1,11 +1,13 @@
 use crate::script::storage::Storage;
-use crate::script::user_editable_config::ConfigKind;
-use crate::script_libs::config_manage::{UserEditableConfig, UserEditableConfigKind};
-use crate::script_libs::error::InitScriptError;
+use crate::script::user_editable_config::ConfigValue;
+use crate::script_loader::config::{UserEditableConfig, UserEditableConfigKind};
+use crate::script_loader::error::UserConfigError;
 use std::collections::BTreeMap;
 use std::rc::Rc;
 
 use typed_builder::TypedBuilder;
+
+use super::error::{ScriptInnerError, StorageError};
 
 #[derive(Debug, TypedBuilder)]
 pub struct UserConfigDefine {
@@ -20,30 +22,29 @@ impl UserConfigDefine {
         &self,
         storage: &impl Storage,
         identity: &str,
-        value: ConfigKind,
-    ) -> Result<Option<String>, InitScriptError> {
-        if let Some(define) = self.defines.get(identity) {
-            let v = match (&*define.kind, value) {
-                (UserEditableConfigKind::Select(selects, ..), ConfigKind::Select(k)) => {
-                    if !selects.contains_key(&k) {
-                        return Err(InitScriptError::SelectTargetNotInRage(
-                            k,
-                            selects.keys().cloned().collect(),
-                        ));
-                    }
-                    k
+        value: ConfigValue,
+    ) -> Result<String, ScriptInnerError> {
+        let Some(define) = self.defines.get(identity) else {
+            return Err(UserConfigError::NotDefine {
+                id: identity.to_string(),
+            }
+            .into());
+        };
+        let v = match (&*define.kind, value) {
+            (UserEditableConfigKind::Select(selects, ..), ConfigValue::Select(k)) => {
+                if !selects.contains_key(&k) {
+                    return UserConfigError::new_out_range(k, selects.keys());
                 }
-                (UserEditableConfigKind::Switch(_), ConfigKind::Switch(bo)) => bo.to_string(),
-                (UserEditableConfigKind::Text(_), ConfigKind::Text(s)) => s,
-                (l, r) => return Err(InitScriptError::UserConfigTypeNotMatch(l.ty(), r.ty())),
-            };
+                k
+            }
+            (UserEditableConfigKind::Switch(_), ConfigValue::Switch(bo)) => bo.to_string(),
+            (UserEditableConfigKind::Text(_), ConfigValue::Text(s)) => s,
+            (l, r) => return Err(UserConfigError::new_not_match(l.ty(), r.ty()).into()),
+        };
 
-            storage
-                .store(&self.script_identity, identity, v.as_bytes())
-                .map_err(InitScriptError::Storage)?;
-            Ok(Some(v))
-        } else {
-            Ok(None)
-        }
+        storage
+            .store(&self.script_identity, identity, v.as_bytes())
+            .map_err(StorageError::from)?;
+        Ok(v)
     }
 }
