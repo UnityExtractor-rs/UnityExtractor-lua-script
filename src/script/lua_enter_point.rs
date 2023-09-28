@@ -59,6 +59,11 @@ pub struct LuaEntryPoint<'lua> {
     /// the config will be auto store to [BoxedStorage](super::storage::BoxedStorage),
     /// this may cause script state change,
     /// if not provide, will just update config to storage
+    /// 
+    /// ## Function signature
+    /// ```lua
+    /// function ConfigUpdate(unityBundle: UnityBundle)-> map[string]SubScriptEntry end
+    /// ```
     config_update: Option<Function<'lua>>,
     /// a lua function to determine whether a special [UnityBundle](UnityBundle) can be applied this [Script](super::Script) and
     /// witch sub scripts can be apply
